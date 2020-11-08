@@ -138,6 +138,15 @@ public class GameManager : SingletonBehaviour<GameManager>
         return currentSpawnRate / (currentSpawnRate + GameSettings.instance.rateUpFunctionSlowness);
     }
 
+    //method to kill the enemy and erasing him out of the active enemies listed
+    public void KillEnemy(ProjectileScript projectile, EnemyBehavior victim)
+    {
+        int enemyIndex = activeEnemies.IndexOf(victim);
+        activeEnemies.RemoveAt(enemyIndex);
+
+        victim.KillEnemy(projectile);
+    }
+
     //method for the explosive projectile kind. kills enemies in a radius surrounding the projectile
     public void KillEnemiesInRadius(ProjectileScript proj)
     {
@@ -153,7 +162,7 @@ public class GameManager : SingletonBehaviour<GameManager>
                 EnemyBehavior eb = activeEnemies[i];
                 activeEnemies.RemoveAt(i);
                 i--;
-
+                
                 eb.KillEnemy(proj);
             }
         }
@@ -207,6 +216,8 @@ public class GameManager : SingletonBehaviour<GameManager>
             PlayerPrefs.SetInt("HighestScore", score);
         }
 
+        PlayFabManager.instance.SetHighScoreStat(highScore);
+
         UIScreens[0].SetActive(false);
         UIScreens[1].SetActive(true);
 
@@ -217,6 +228,8 @@ public class GameManager : SingletonBehaviour<GameManager>
         int goldEarned = Mathf.CeilToInt((float)score / CurrencySettings.instance.killsToGold);
         int goldStored = PlayerPrefs.GetInt("Wallet", CurrencySettings.instance.startingGold);
         PlayerPrefs.SetInt("Wallet", goldEarned + goldStored);
+
+        PlayFabManager.instance.SetGoldStat(goldEarned + goldStored);
 
         finalGoldLabel.text = "---You earned " + goldEarned + " Gold!---";
     }
@@ -273,7 +286,9 @@ public class GameManager : SingletonBehaviour<GameManager>
         gold -= price;
         PlayerPrefs.SetInt("Wallet", gold);
         goldLabel.text = "Gold: " + gold;
-        
+
+        PlayFabManager.instance.SetGoldStat(gold);
+
         CannonScript.instance.LoadSpecialProjectile(type);
     }
 
@@ -300,6 +315,8 @@ public class GameManager : SingletonBehaviour<GameManager>
         gold -= price;
         PlayerPrefs.SetInt("Wallet", gold);
         goldLabel.text = "Gold: " + gold;
+
+        PlayFabManager.instance.SetGoldStat(gold);
 
         currentWallHP++;
         lifeBar.fillAmount = (float)currentWallHP / (float)GameSettings.instance.wallHealthPoints;

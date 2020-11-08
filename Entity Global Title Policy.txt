@@ -1,0 +1,12 @@
+[{
+                    "Resource": "pfrn:data--*!*/*",
+                    "Action": "*",
+                    "Effect": "Allow",
+                    "Principal": {
+                        "MemberOf": {
+                            "RoleId": "admins"
+                        }
+                    },
+                    "Comment": "Allow members of the group administrator role to modify group profile data and files"
+                }
+                ]

@@ -8,7 +8,8 @@ public class MenuManager : SingletonBehaviour<MenuManager>
     //UI screens
     public GameObject[] UIScreens;
 
-    //screen that is currently being displayed
+    //playfab manager
+    public PlayFabManager playFabManager;
 
     //camera of the menu, for aesthetic purposes
     public Transform menuCamera;
@@ -17,9 +18,31 @@ public class MenuManager : SingletonBehaviour<MenuManager>
     // Start is called before the first frame update
     void Start()
     {
-        PlayerPrefs.DeleteAll();
+        //PlayerPrefs.DeleteAll();
 
-        ShowScreen(0);
+        //we create the playfab manager after checking if there's no other object of its kind already created
+        PlayFabManager[] managersActive = FindObjectsOfType<PlayFabManager>();
+        if(managersActive.Length > 1) //later menu reach. must erase the new playfabManager
+        {
+            for (int i = 0; i < managersActive.Length; i++)
+            {
+                if (!managersActive[i].activeManager)
+                {
+                    Destroy(managersActive[i].gameObject);
+                }
+                else
+                    playFabManager = managersActive[i];
+            }
+
+            playFabManager.playerLoginPanel.SetActive(false);
+            ShowScreen(0);
+        }
+        else
+        {
+            DontDestroyOnLoad(playFabManager.gameObject);
+            playFabManager.StartLogin();
+            ShowScreen(4);
+        }
     }
 
     void LateUpdate()

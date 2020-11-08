@@ -87,6 +87,7 @@ public class ProjectileScript : MonoBehaviour
             //explosive damage effect on a radius upon landing for explosive projectiles
             else if(projectileType == ProjectileType.Explosive)
             {
+                enemiesKilled++;
                 GameManager.instance.KillEnemiesInRadius(this);
                 active = false;
                 return;
@@ -115,7 +116,8 @@ public class ProjectileScript : MonoBehaviour
 
                     //we spawn the new projectiles
                     GameObject fragment = Instantiate<GameObject>(CannonScript.instance.projectilePrefab);
-                    fragment.GetComponent<ProjectileScript>().Shoot(transform.position, startFragmentSpeed, ProjectileType.Fragment, 1);
+                    //fragment.GetComponent<ProjectileScript>().Shoot(transform.position, startFragmentSpeed, ProjectileType.Fragment, 1); //old working of the fragment projectile
+                    fragment.GetComponent<ProjectileScript>().Shoot(transform.position, startFragmentSpeed, ProjectileType.Bouncer, 0);
                 }
 
                 //we destroy the parent projectile
@@ -193,7 +195,7 @@ public class ProjectileScript : MonoBehaviour
         if (other.tag == "Enemy")
         {
             enemiesKilled++;
-            other.GetComponent<EnemyBehavior>().KillEnemy(this);
+            GameManager.instance.KillEnemy(this, other.GetComponent<EnemyBehavior>());
         }
 
         //rolling projectiles in ground can roll out of the picture since they're bound with a life time
