@@ -20,6 +20,7 @@ public class GameManager : SingletonBehaviour<GameManager>
     public Text warningLabel;
     public Transform storeOpenButton;
     public Transform[] storeButtons;
+    public GameObject touchControls;
 
     //wall to defend. used for the explosion effect on defeat
     [Header("Game Elements")]
@@ -42,7 +43,7 @@ public class GameManager : SingletonBehaviour<GameManager>
 
     //store variables
     private bool storeOpened = false;
-
+    
     //start game settings
     void Start()
     {
@@ -248,6 +249,7 @@ public class GameManager : SingletonBehaviour<GameManager>
         Time.timeScale = open ? 0f : 1f;
 
         storePanel.GetComponent<Animator>().SetTrigger(open ? "Open" : "Close");
+        touchControls.SetActive(!open);
 
         goldLabel.gameObject.SetActive(open);
         if (open)
@@ -340,4 +342,6 @@ public class GameManager : SingletonBehaviour<GameManager>
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
     }
+
+    
 }

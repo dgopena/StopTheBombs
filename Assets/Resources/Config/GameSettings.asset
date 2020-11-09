@@ -41,7 +41,7 @@ MonoBehaviour:
   secondsToRateUp: 7.5
   rateUpFunctionSlowness: 7.5
   rateUp: 0.4
-  enemySpeed: 1.2
+  enemySpeed: 1
   enemyWallDamage: 1
   scorePerKill: 1
   wallHealthPoints: 10

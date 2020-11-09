@@ -69,17 +69,23 @@ public class PlayFabManager : SingletonBehaviour<PlayFabManager>
     //register and login handling events
     private void OnLoginSuccess(LoginResult result)
     {
-        Debug.Log("Congratulations, you made your first successful API call!");
+        Debug.Log("Succesful Login");
         //we remember the player data to expedite the login process next time
         PlayerPrefs.SetString("userEmail", userEmail);
         PlayerPrefs.SetString("userPassword", userPassword);
 
         playerLoginPanel.SetActive(false);
-        MenuManager.instance.ShowScreen(0);
+        MenuManager.instance.LoginSuccess();
     }
 
     private void OnLoginFailure(PlayFabError error)
     {
+        if(userName == null || userName.Length == 0)
+        {
+            Debug.LogError("user name can't be blank!");
+            return;
+        }
+
         var registerRequest = new RegisterPlayFabUserRequest { Email = userEmail, Password = userPassword, Username = userName };
         PlayFabClientAPI.RegisterPlayFabUser(registerRequest, OnRegisterSuccess, OnRegisterFailure);
     }
@@ -91,7 +97,7 @@ public class PlayFabManager : SingletonBehaviour<PlayFabManager>
         PlayerPrefs.SetString("userPassword", userPassword);
 
         playerLoginPanel.SetActive(false);
-        MenuManager.instance.ShowScreen(0);
+        MenuManager.instance.LoginSuccess();
     }
 
     private void OnRegisterFailure(PlayFabError error)
@@ -157,6 +163,40 @@ public class PlayFabManager : SingletonBehaviour<PlayFabManager>
                     break;
             }
         }
+    }
+
+    #endregion
+
+    #region Time Calls
+
+    public void GetCurrentTime()
+    {
+        var timeRequest = new GetTimeRequest();
+        PlayFabClientAPI.GetTime(timeRequest, OnGetTimeSuccess, OnGetTimeFailure);
+    }
+
+    //we send the server time to the menu manager to compare with the stored time stamp and get the time passed since the first "full play" (play with 5 charges)
+    private void OnGetTimeSuccess(GetTimeResult result)
+    {
+        MenuManager.instance.UpdateWaitTimes(result.Time);
+    }
+
+    private void OnGetTimeFailure(PlayFabError error)
+    {
+        Debug.Log("There was a problem getting the time. Error: " + error.GenerateErrorReport());
+        MenuManager.instance.UpdateTimeError();
+    }
+
+    //gets the timestamp to start a new streak of games. Upon getting the server time a game starts
+    public void GetTimeStampedGame()
+    {
+        var timeRequest = new GetTimeRequest();
+        PlayFabClientAPI.GetTime(timeRequest, OnStartTimeStampSuccess, OnGetTimeFailure);
+    }
+
+    private void OnStartTimeStampSuccess(GetTimeResult result)
+    {
+        MenuManager.instance.TimeStampSuccess(result.Time);
     }
 
     #endregion

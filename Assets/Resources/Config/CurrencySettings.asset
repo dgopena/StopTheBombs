@@ -16,4 +16,10 @@ MonoBehaviour:
   explosiveProjectile: 50
   rollingProjectile: 25
   healingPrice: 50
+  startingGold: 500
   killsToGold: 3
+  maxPlayChances: 5
+  playRecoveryTime: 60
+  speedTimeGemPrice: 1
+  startingGems: 10
+  gemPriceInGold: 100

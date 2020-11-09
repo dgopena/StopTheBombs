@@ -145,6 +145,32 @@ public class CannonScript : SingletonBehaviour<CannonScript>
         DrawTrajectory();
     }
 
+    //ui controls for the cannon
+    public void ControlPress(int directionID)
+    {
+        switch (directionID)
+        {
+            case 0:
+                RotateCannon(false);
+                break;
+            case 1:
+                RotateCannon(true);
+                break;
+            case 2:
+                TiltCannon(true);
+                break;
+            case 3:
+                TiltCannon(false);
+                break;
+        }
+    }
+
+    //ui control to fire the cannon
+    public void FirePress()
+    {
+        FireCannon();
+    }
+
     //method that loads a special bullet to the chamber
     public void LoadSpecialProjectile(ProjectileScript.ProjectileType type)
     {
