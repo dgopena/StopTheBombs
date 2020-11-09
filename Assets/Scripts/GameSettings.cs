@@ -60,5 +60,8 @@ public class GameSettings : ConfigResource<GameSettings>
     [Header("Wall Settings")]
     public int wallHealthPoints; //how many impacts does the wall take
     public float wallExplosionForce; //how much force is applied to the wall components upon breaking it
+
+    [Header("Leaderboard Settings")]
+    public int displayEntriesNumber;
 }
 

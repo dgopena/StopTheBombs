@@ -96,8 +96,14 @@ public class PlayFabManager : SingletonBehaviour<PlayFabManager>
         PlayerPrefs.SetString("userEmail", userEmail);
         PlayerPrefs.SetString("userPassword", userPassword);
 
+        PlayFabClientAPI.UpdateUserTitleDisplayName(new UpdateUserTitleDisplayNameRequest { DisplayName = userName }, OnDisplayName, OnLoginFailure);
         playerLoginPanel.SetActive(false);
         MenuManager.instance.LoginSuccess();
+    }
+
+    void OnDisplayName(UpdateUserTitleDisplayNameResult result)
+    {
+        Debug.Log(result.DisplayName + " is your new display name");
     }
 
     private void OnRegisterFailure(PlayFabError error)
@@ -274,6 +280,35 @@ public class PlayFabManager : SingletonBehaviour<PlayFabManager>
     private void OnStartTimeStampSuccess(GetTimeResult result)
     {
         MenuManager.instance.TimeStampSuccess(result.Time);
+    }
+
+    #endregion
+
+    #region Leaderboard
+
+    public void GetLeaderboard()
+    {
+        var requestLeaderboard = new GetLeaderboardRequest { StartPosition = 0, StatisticName = "playerHighScore", MaxResultsCount = GameSettings.instance.displayEntriesNumber };
+        PlayFabClientAPI.GetLeaderboard(requestLeaderboard, OnGetLeaderboard, OnGetLeaderboardError);
+    }
+
+    void OnGetLeaderboard(GetLeaderboardResult result)
+    {
+        List<MenuManager.LeaderboardEntry> entries = new List<MenuManager.LeaderboardEntry>();
+        foreach(PlayerLeaderboardEntry entry in result.Leaderboard)
+        {
+            Debug.Log(entry.DisplayName + ": " + entry.StatValue);
+            MenuManager.LeaderboardEntry nuEntry = new MenuManager.LeaderboardEntry { name = entry.DisplayName, score = entry.StatValue };
+            entries.Add(nuEntry);
+        }
+
+        MenuManager.instance.BuildLeaderboardSuccess(entries.ToArray());
+    }
+
+    void OnGetLeaderboardError(PlayFabError error)
+    {
+        Debug.Log(error.GenerateErrorReport());
+        MenuManager.instance.BuildLeaderboardError();
     }
 
     #endregion

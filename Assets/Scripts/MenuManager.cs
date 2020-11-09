@@ -39,6 +39,13 @@ public class MenuManager : SingletonBehaviour<MenuManager>
     public GameObject confirmationPanelSpeed;
     public GameObject confirmationPanelGems;
 
+    //Leaderboard UI Elements
+    [Header("Leaderboard UI Elements")]
+    public RectTransform scrollContent;
+    public GameObject leaderboardEntryPrefab;
+    public Text leaderboardWarningLabel;
+    public Text leaderboardTitleLabel;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -413,5 +420,69 @@ public class MenuManager : SingletonBehaviour<MenuManager>
 
         UpdateShop();
     }
+    #endregion
+
+    #region Leaderboard Functions
+
+    public struct LeaderboardEntry
+    {
+        public string name;
+        public int score;
+    }
+
+    //request to server to get the leaderboard
+    public void BuildLeaderboardRequest()
+    {
+        warningLabel.gameObject.SetActive(false);
+        leaderboardTitleLabel.text = "Top " + GameSettings.instance.displayEntriesNumber + " Highest Scores";
+        CleanLeaderboard();
+        PlayFabManager.instance.GetLeaderboard();
+    }
+
+    //on leaderboard reception success
+    public void BuildLeaderboardSuccess(LeaderboardEntry[] entries)
+    {
+        //we resize the content box
+        Vector2 sd = scrollContent.sizeDelta;
+        sd.y = 70f * GameSettings.instance.displayEntriesNumber;
+        scrollContent.sizeDelta = sd;
+
+        for(int i = 0; i < GameSettings.instance.displayEntriesNumber; i++)
+        {
+            GameObject nuEntry = Instantiate<GameObject>(leaderboardEntryPrefab);
+            nuEntry.transform.SetParent(scrollContent);
+            RectTransform rt = nuEntry.GetComponent<RectTransform>();
+
+            rt.offsetMin = new Vector2(10f, 0f);
+            rt.offsetMax = new Vector2(-10f, 50f);
+
+            Vector3 apos = rt.anchoredPosition;
+            apos.y = (-20f * (i + 1)) + (-50f * i);
+            rt.anchoredPosition = apos;
+
+            nuEntry.transform.GetChild(0).GetComponent<Text>().text = (i < entries.Length) ? entries[i].name : "---";
+            nuEntry.transform.GetChild(1).GetComponent<Text>().text = (i < entries.Length) ? entries[i].score.ToString() : "---";
+        }
+    }
+
+    public void BuildLeaderboardError()
+    {
+        warningLabel.gameObject.SetActive(true);
+        warningLabel.text = "! Error retrieving the high scores. Please try again later !";
+    }
+
+    //clean all previous entries from the leaderboard
+    private void CleanLeaderboard()
+    {
+        for(int i = scrollContent.childCount - 1; i >= 0; i--)
+        {
+            Destroy(scrollContent.GetChild(i).gameObject);
+        }
+
+        Vector2 sd = scrollContent.sizeDelta;
+        sd.y = 200f;
+        scrollContent.sizeDelta = sd;
+    }
+
     #endregion
 }
