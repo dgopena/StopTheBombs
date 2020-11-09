@@ -217,8 +217,6 @@ public class GameManager : SingletonBehaviour<GameManager>
             PlayerPrefs.SetInt("HighestScore", score);
         }
 
-        PlayFabManager.instance.SetHighScoreStat(highScore);
-
         UIScreens[0].SetActive(false);
         UIScreens[1].SetActive(true);
 
@@ -230,7 +228,12 @@ public class GameManager : SingletonBehaviour<GameManager>
         int goldStored = PlayerPrefs.GetInt("Wallet", CurrencySettings.instance.startingGold);
         PlayerPrefs.SetInt("Wallet", goldEarned + goldStored);
 
-        PlayFabManager.instance.SetGoldStat(goldEarned + goldStored);
+        PlayFabManager.instance.UpdateHighScoreStat(highScore);
+        PlayFabManager.instance.UpdateGoldStat(goldEarned + goldStored);
+        PlayFabManager.instance.StartCloudStatUpdate();
+
+        //PlayFabManager.instance.SetHighScoreStat(highScore); //previous version of stat updating
+        //PlayFabManager.instance.SetGoldStat(goldEarned + goldStored);
 
         finalGoldLabel.text = "---You earned " + goldEarned + " Gold!---";
     }
@@ -289,7 +292,11 @@ public class GameManager : SingletonBehaviour<GameManager>
         PlayerPrefs.SetInt("Wallet", gold);
         goldLabel.text = "Gold: " + gold;
 
-        PlayFabManager.instance.SetGoldStat(gold);
+        PlayFabManager.instance.UpdateGoldStat(gold);
+
+        PlayFabManager.instance.StartCloudStatUpdate();
+
+        //PlayFabManager.instance.SetGoldStat(gold); //previous non-cloudscript version
 
         CannonScript.instance.LoadSpecialProjectile(type);
     }
@@ -318,7 +325,11 @@ public class GameManager : SingletonBehaviour<GameManager>
         PlayerPrefs.SetInt("Wallet", gold);
         goldLabel.text = "Gold: " + gold;
 
-        PlayFabManager.instance.SetGoldStat(gold);
+        PlayFabManager.instance.UpdateGoldStat(gold);
+
+        PlayFabManager.instance.StartCloudStatUpdate();
+
+        //PlayFabManager.instance.SetGoldStat(gold); //previous non-cloudscript version
 
         currentWallHP++;
         lifeBar.fillAmount = (float)currentWallHP / (float)GameSettings.instance.wallHealthPoints;

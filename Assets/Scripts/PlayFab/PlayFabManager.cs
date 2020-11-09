@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 using PlayFab;
 using PlayFab.ClientModels;
+using PlayFab.Json;
 using UnityEngine;
-
 
 //login class for the players. obtained from info gamer's playfab + unity youtube tutorial.
 public class PlayFabManager : SingletonBehaviour<PlayFabManager>
@@ -109,10 +109,11 @@ public class PlayFabManager : SingletonBehaviour<PlayFabManager>
 
     #region PlayerStats
 
-    private int playerHighScore;
-    private int playerGold;
-    private int playerGems;
+    private int highScoreStat;
+    private int goldStat;
+    private int gemStat;
 
+    //statistic update without cloudscript. i left them here just for future reference
     public void SetHighScoreStat(int highScore)
     {
         PlayFabClientAPI.UpdatePlayerStatistics(new UpdatePlayerStatisticsRequest
@@ -170,16 +171,75 @@ public class PlayFabManager : SingletonBehaviour<PlayFabManager>
             switch (eachStat.StatisticName)
             {
                 case "highScore":
-                    playerHighScore = eachStat.Value;
+                    highScoreStat = eachStat.Value;
                     break;
                 case "goldAmount":
-                    playerGold = eachStat.Value;
+                    goldStat = eachStat.Value;
                     break;
                 case "gemAmount":
-                    playerGems = eachStat.Value;
+                    gemStat = eachStat.Value;
                     break;
             }
         }
+    }
+
+    //update variables before cloud update
+    public void UpdateHighScoreStat(int highScore)
+    {
+        highScoreStat = highScore;
+    }
+
+    public void UpdateGoldStat(int goldAmount)
+    {
+        goldStat = goldAmount;
+    }
+
+    public void UpdateGemStat(int gemAmount)
+    {
+        gemStat = gemAmount;
+    }
+
+    //stat updating but now with cloudscripts
+    public void StartCloudStatUpdate()
+    {
+        PlayFabClientAPI.ExecuteCloudScript(new ExecuteCloudScriptRequest()
+        {
+            FunctionName = "UpdatePlayerStats",
+            FunctionParameter = new { playerHighScore = highScoreStat, playerGold = goldStat, playerGems = gemStat },
+            GeneratePlayStreamEvent = true,
+        }, OnCloudStatUpdate, OnErrorShared);
+    }
+
+    private void OnCloudStatUpdate(ExecuteCloudScriptResult result)
+    {
+        JsonObject jsonResult = (JsonObject)result.FunctionResult;
+        object messageValue;
+        jsonResult.TryGetValue("messageValue", out messageValue);
+        Debug.Log((string)messageValue);
+    }
+
+    //for player reset stats. just for dev purposes for now
+    public void StartCloudStatReset()
+    {
+        PlayFabClientAPI.ExecuteCloudScript(new ExecuteCloudScriptRequest()
+        {
+            FunctionName = "ResetPlayerStats",
+            FunctionParameter = new { playerHighScore = 0, playerGold = 0, playerGems = 0 },
+            GeneratePlayStreamEvent = true,
+        }, OnCloudStatReset, OnErrorShared);
+    }
+
+    private void OnCloudStatReset(ExecuteCloudScriptResult result)
+    {
+        JsonObject jsonResult = (JsonObject)result.FunctionResult;
+        object messageValue;
+        jsonResult.TryGetValue("messageValue", out messageValue);
+        Debug.Log((string)messageValue);
+    }
+
+    private void OnErrorShared(PlayFabError error)
+    {
+        Debug.Log(error.GenerateErrorReport());
     }
 
     #endregion

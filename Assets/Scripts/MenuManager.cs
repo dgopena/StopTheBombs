@@ -184,7 +184,7 @@ public class MenuManager : SingletonBehaviour<MenuManager>
     //called from the playfabmanager upong a succesful time update
     public void UpdateWaitTimes(DateTime serverTime)
     {
-        //we get the stored
+        //we get the stored timestamp
         DateTime timeStamp = LoadLastTimestamp();
         TimeSpan difference = serverTime.Subtract(timeStamp);
 
@@ -356,13 +356,19 @@ public class MenuManager : SingletonBehaviour<MenuManager>
         int goldAmount = PlayerPrefs.GetInt("Wallet", CurrencySettings.instance.startingGold);
         goldAmount -= CurrencySettings.instance.gemPriceInGold;
         PlayerPrefs.SetInt("Wallet", goldAmount);
-        PlayFabManager.instance.SetGoldStat(goldAmount);
 
         //we update the gem count
         int gemCount = PlayerPrefs.GetInt("GemPouch", CurrencySettings.instance.startingGems);
         gemCount++;
         PlayerPrefs.SetInt("GemPouch", gemCount);
-        PlayFabManager.instance.SetGemStat(gemCount);
+
+        PlayFabManager.instance.UpdateGemStat(gemCount);
+        PlayFabManager.instance.UpdateGoldStat(goldAmount);
+
+        PlayFabManager.instance.StartCloudStatUpdate();
+
+        //PlayFabManager.instance.SetGoldStat(goldAmount);
+        //PlayFabManager.instance.SetGemStat(gemCount);
 
         UpdateShop();
     }
@@ -393,7 +399,12 @@ public class MenuManager : SingletonBehaviour<MenuManager>
         int gemCount = PlayerPrefs.GetInt("GemPouch", CurrencySettings.instance.startingGems);
         gemCount -= CurrencySettings.instance.speedTimeGemPrice;
         PlayerPrefs.SetInt("GemPouch", gemCount);
-        PlayFabManager.instance.SetGemStat(gemCount);
+
+        PlayFabManager.instance.UpdateGemStat(gemCount);
+
+        PlayFabManager.instance.StartCloudStatUpdate();
+
+        //PlayFabManager.instance.SetGemStat(gemCount); //previous non-cloudscript version
 
         //we skip the waiting time
         PlayerPrefs.SetInt("playChances", CurrencySettings.instance.maxPlayChances);
