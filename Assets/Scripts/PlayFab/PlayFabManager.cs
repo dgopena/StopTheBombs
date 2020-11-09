@@ -111,6 +111,7 @@ public class PlayFabManager : SingletonBehaviour<PlayFabManager>
 
     private int playerHighScore;
     private int playerGold;
+    private int playerGems;
 
     public void SetHighScoreStat(int highScore)
     {
@@ -132,6 +133,19 @@ public class PlayFabManager : SingletonBehaviour<PlayFabManager>
             Statistics = new List<StatisticUpdate>
             {
                 new StatisticUpdate { StatisticName = "goldAmount", Value = goldAmount },
+            }
+        },
+        result => { Debug.Log("User Statistics Updated"); },
+        error => { Debug.LogError(error.GenerateErrorReport()); });
+    }
+
+    public void SetGemStat(int gemAmount)
+    {
+        PlayFabClientAPI.UpdatePlayerStatistics(new UpdatePlayerStatisticsRequest
+        {
+            Statistics = new List<StatisticUpdate>
+            {
+                new StatisticUpdate { StatisticName = "gemAmount", Value = gemAmount },
             }
         },
         result => { Debug.Log("User Statistics Updated"); },
@@ -160,6 +174,9 @@ public class PlayFabManager : SingletonBehaviour<PlayFabManager>
                     break;
                 case "goldAmount":
                     playerGold = eachStat.Value;
+                    break;
+                case "gemAmount":
+                    playerGems = eachStat.Value;
                     break;
             }
         }

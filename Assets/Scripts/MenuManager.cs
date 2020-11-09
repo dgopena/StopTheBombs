@@ -30,6 +30,15 @@ public class MenuManager : SingletonBehaviour<MenuManager>
     //bool to control that the update starts after the setup
     private bool menuStarted = false;
 
+    //Shop UI Elements
+    [Header("Shop UI Elements")]
+    public Text goldLabel;
+    public Text gemLabel;
+    public Text warningLabel;
+    public Transform[] shopButtons;
+    public GameObject confirmationPanelSpeed;
+    public GameObject confirmationPanelGems;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -37,7 +46,7 @@ public class MenuManager : SingletonBehaviour<MenuManager>
 
         //we create the playfab manager after checking if there's no other object of its kind already created
         PlayFabManager[] managersActive = FindObjectsOfType<PlayFabManager>();
-        if(managersActive.Length > 1) //later menu reach. must erase the new playfabManager
+        if (managersActive.Length > 1) //later menu reach. must erase the new playfabManager
         {
             GameObject logPanel = playFabManager.playerLoginPanel;
             for (int i = 0; i < managersActive.Length; i++)
@@ -122,7 +131,7 @@ public class MenuManager : SingletonBehaviour<MenuManager>
     //changes the screen to display
     public void ShowScreen(int screenIndex)
     {
-        for(int i = 0; i < UIScreens.Length; i++)
+        for (int i = 0; i < UIScreens.Length; i++)
         {
             UIScreens[i].SetActive(i == screenIndex);
         }
@@ -143,10 +152,18 @@ public class MenuManager : SingletonBehaviour<MenuManager>
 
         currentPlayChances--;
         PlayerPrefs.SetInt("playChances", currentPlayChances);
-        
+
         UnityEngine.SceneManagement.SceneManager.LoadScene(1);
     }
 
+    //correct control of returning to the main screen
+    public void BackToMenuScreen()
+    {
+        PlayButtonEnabled(false);
+        LoginSuccess();
+    }
+
+    #region Waiting Time Functions
     //called upon entering the menu, to update the wait time of the play chances through a rest call
     private void UpdateTimesCall()
     {
@@ -173,7 +190,9 @@ public class MenuManager : SingletonBehaviour<MenuManager>
 
         bool putToTheMax = (difference.Days >= 1) || (difference.Hours >= 12);
 
-        if (putToTheMax) //we just put to the max the play chances
+        int currentPlayChances = PlayerPrefs.GetInt("playChances", CurrencySettings.instance.maxPlayChances);
+
+        if (currentPlayChances < CurrencySettings.instance.maxPlayChances && putToTheMax) //we just put to the max the play chances
             PlayerPrefs.SetInt("playChances", CurrencySettings.instance.maxPlayChances);
 
         int totalSeconds = (difference.Hours * 3600) + (difference.Minutes * 60) + (difference.Seconds);
@@ -186,7 +205,7 @@ public class MenuManager : SingletonBehaviour<MenuManager>
 
         if (totalSeconds > (CurrencySettings.instance.maxPlayChances * CurrencySettings.instance.playRecoveryTime))
             PlayerPrefs.SetInt("playChances", CurrencySettings.instance.maxPlayChances);
-        else
+        else if(currentPlayChances < CurrencySettings.instance.maxPlayChances)
         {
             //we check how many chances we get from the difference
             chancesGot = totalSeconds / CurrencySettings.instance.playRecoveryTime;
@@ -198,7 +217,7 @@ public class MenuManager : SingletonBehaviour<MenuManager>
 
         AddToTimestamp(chancesGot * CurrencySettings.instance.playRecoveryTime);
 
-        if(currentChances == CurrencySettings.instance.maxPlayChances) //maximum chances reached
+        if (currentChances == CurrencySettings.instance.maxPlayChances) //maximum chances reached
             timeText.gameObject.SetActive(false); //no need to show the timer
         else
         {
@@ -298,4 +317,90 @@ public class MenuManager : SingletonBehaviour<MenuManager>
 
         timeText.text = text;
     }
+    #endregion
+
+    #region Shop Functions
+    //call method to update gem and gold values on the shop
+    public void UpdateShop()
+    {
+        goldLabel.text = "Gold: " + PlayerPrefs.GetInt("Wallet", CurrencySettings.instance.startingGold);
+        gemLabel.text = "Gems: " + PlayerPrefs.GetInt("GemPouch", CurrencySettings.instance.startingGems);
+
+        shopButtons[0].GetChild(0).GetComponent<Text>().text = "Skip wait (" + CurrencySettings.instance.speedTimeGemPrice + (CurrencySettings.instance.speedTimeGemPrice > 1 ? "gems)" : "gem)");
+        shopButtons[1].GetChild(0).GetComponent<Text>().text = "Buy a Gem (" + CurrencySettings.instance.gemPriceInGold + " gold)";
+
+        warningLabel.gameObject.SetActive(false);
+
+        confirmationPanelGems.SetActive(false);
+        confirmationPanelSpeed.SetActive(false);
+    }
+
+    //UI method to request the purchase of a gem
+    public void BuyGemRequest()
+    {
+        int goldAmount = PlayerPrefs.GetInt("Wallet", CurrencySettings.instance.startingGold);
+
+        if (goldAmount < CurrencySettings.instance.gemPriceInGold)
+        {
+            warningLabel.gameObject.SetActive(true);
+            warningLabel.text = "! Warning: Not enough gold to buy a gem !";
+        }
+        else
+            confirmationPanelGems.SetActive(true);
+    }
+
+    //UI method to confirm gem purchase
+    public void BuyGemConfirm()
+    {
+        //we update the gold
+        int goldAmount = PlayerPrefs.GetInt("Wallet", CurrencySettings.instance.startingGold);
+        goldAmount -= CurrencySettings.instance.gemPriceInGold;
+        PlayerPrefs.SetInt("Wallet", goldAmount);
+        PlayFabManager.instance.SetGoldStat(goldAmount);
+
+        //we update the gem count
+        int gemCount = PlayerPrefs.GetInt("GemPouch", CurrencySettings.instance.startingGems);
+        gemCount++;
+        PlayerPrefs.SetInt("GemPouch", gemCount);
+        PlayFabManager.instance.SetGemStat(gemCount);
+
+        UpdateShop();
+    }
+
+    //UI method to request the purchase of a speed up
+    public void BuySpeedRequest()
+    {
+        int gemAmount = PlayerPrefs.GetInt("GemPouch", CurrencySettings.instance.startingGems);
+
+        if (gemAmount < CurrencySettings.instance.speedTimeGemPrice)
+        {
+            warningLabel.gameObject.SetActive(true);
+            warningLabel.text = "! Warning: Not enough gems to buy a speed up !";
+        }
+        else if(PlayerPrefs.GetInt("playChances", CurrencySettings.instance.maxPlayChances) == CurrencySettings.instance.maxPlayChances)
+        {
+            warningLabel.gameObject.SetActive(true);
+            warningLabel.text = "! Warning: You are already in your max amount of playing chances. No need to speed up !";
+        }
+        else
+            confirmationPanelSpeed.SetActive(true);
+    }
+
+    //UI method to confirm speed up purchase
+    public void BuySpeedConfirm()
+    {
+        //we update the gem count
+        int gemCount = PlayerPrefs.GetInt("GemPouch", CurrencySettings.instance.startingGems);
+        gemCount -= CurrencySettings.instance.speedTimeGemPrice;
+        PlayerPrefs.SetInt("GemPouch", gemCount);
+        PlayFabManager.instance.SetGemStat(gemCount);
+
+        //we skip the waiting time
+        PlayerPrefs.SetInt("playChances", CurrencySettings.instance.maxPlayChances);
+        timeText.gameObject.SetActive(false);
+        currentPlayChances = CurrencySettings.instance.maxPlayChances;
+
+        UpdateShop();
+    }
+    #endregion
 }

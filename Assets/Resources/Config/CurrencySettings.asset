@@ -19,7 +19,7 @@ MonoBehaviour:
   startingGold: 500
   killsToGold: 3
   maxPlayChances: 5
-  playRecoveryTime: 60
+  playRecoveryTime: 150
   speedTimeGemPrice: 1
   startingGems: 10
   gemPriceInGold: 100

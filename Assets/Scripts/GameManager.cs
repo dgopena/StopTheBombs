@@ -331,7 +331,7 @@ public class GameManager : SingletonBehaviour<GameManager>
         scoreLabel.text = "Score: " + this.score;
     }
 
-    //method to load the scene again, prompting a new session of the game
+    //method to load the scene again, prompting a new session of the game. made for debug purposes and deactivated on the current version
     public void Retry()
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(1);
