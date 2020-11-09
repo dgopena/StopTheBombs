@@ -452,13 +452,15 @@ public class MenuManager : SingletonBehaviour<MenuManager>
             GameObject nuEntry = Instantiate<GameObject>(leaderboardEntryPrefab);
             nuEntry.transform.SetParent(scrollContent);
             RectTransform rt = nuEntry.GetComponent<RectTransform>();
-
+            
             rt.offsetMin = new Vector2(10f, 0f);
             rt.offsetMax = new Vector2(-10f, 50f);
 
             Vector3 apos = rt.anchoredPosition;
             apos.y = (-20f * (i + 1)) + (-50f * i);
             rt.anchoredPosition = apos;
+
+            rt.localScale = Vector3.one;
 
             nuEntry.transform.GetChild(0).GetComponent<Text>().text = (i < entries.Length) ? entries[i].name : "---";
             nuEntry.transform.GetChild(1).GetComponent<Text>().text = (i < entries.Length) ? entries[i].score.ToString() : "---";

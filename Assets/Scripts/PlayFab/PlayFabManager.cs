@@ -297,7 +297,6 @@ public class PlayFabManager : SingletonBehaviour<PlayFabManager>
         List<MenuManager.LeaderboardEntry> entries = new List<MenuManager.LeaderboardEntry>();
         foreach(PlayerLeaderboardEntry entry in result.Leaderboard)
         {
-            Debug.Log(entry.DisplayName + ": " + entry.StatValue);
             MenuManager.LeaderboardEntry nuEntry = new MenuManager.LeaderboardEntry { name = entry.DisplayName, score = entry.StatValue };
             entries.Add(nuEntry);
         }
